@@ -78,15 +78,37 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
-app.get('/signup',
-  (req, res) => {
-    res.render('signup');
-  });
+app.get('/signup', (req, res) => res.render('signup'));
 
-app.get('/login',
-  (req, res) => {
-    res.render('login');
-  });
+// handle user signup
+app.post('/signup', (req, res, next) => {
+  const { username, password } = req.body;
+
+  models.Users.query({ username })
+    .then((user) => {
+      if (!user) {
+        return models.Users.create({ username, password })
+          .then((data) => console.log('userId:', data.insertId))
+          .then(() => res.redirect('/'));
+      } else {
+        (() => {
+          console.log(`user '${user.username}' already exists`);
+          return Promise.resolve();
+        })().then(() => res.redirect('/signup'));
+      }
+    })
+    .catch((error) => console.log(error));
+});
+
+app.get('/login', (req, res) => res.render('login'));
+
+// handle user login
+app.post('/login', (req, res, next) => {
+  const { username, password } = req.body;
+  // log in existing users, send to index page
+  // if user does not exist, keep on login page
+  // if password authentication fails, keep on login page
+});
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
