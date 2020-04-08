@@ -88,7 +88,7 @@ app.post('/signup', (req, res, next) => {
     .then((user) => {
       if (!user) {
         return models.Users.create({ username, password })
-          .then((data) => console.log('userId:', data.insertId))
+          .then((data) => console.log('created userId:', data.insertId))
           .then(() => res.redirect('/'));
       } else {
         (() => {
@@ -105,9 +105,24 @@ app.get('/login', (req, res) => res.render('login'));
 // handle user login
 app.post('/login', (req, res, next) => {
   const { username, password } = req.body;
-  // log in existing users, send to index page
-  // if user does not exist, keep on login page
-  // if password authentication fails, keep on login page
+  models.Users.query({ username })
+    .then((user) => {
+      if (!user) {
+        console.log(`'${username}' does not exist`);
+        res.redirect('/login');
+      } else {
+        const isMatch = models.Users.compare(password, user.password, user.salt);
+        if (!isMatch) {
+          console.log(`'${password}' does not match your password`);
+          res.redirect('/login');
+        } else {
+          // auth successful, log in user (create session?)
+          console.log('BOOM! Authentication succesful!');
+          res.redirect('/');
+        }
+      }
+    })
+    .catch((error) => console.log(error));
 });
 
 /************************************************************/
