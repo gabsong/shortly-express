@@ -2,6 +2,7 @@ const db = require('../db');
 const _ = require('lodash');
 
 const executeQuery = (query, values) => {
+  // console.log(query, values);
   return db.queryAsync(query, values).spread(results => results)
     .catch((error) => console.log(error.sqlMessage));
 };

@@ -14,11 +14,10 @@ app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
 app.use(partials());
 app.use(bodyParser.json());
-// app.use(cookieParser);
-// app.use(createSession);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
-
+app.use(cookieParser);
+app.use(createSession);
 
 
 app.get('/',
@@ -112,9 +111,10 @@ app.post('/login', (req, res, next) => {
   models.Users.query({ username })
     .then((user) => {
       if (!user) {
-        console.log(`'${username}' does not exist`);
+        console.log(`user '${username}' does not exist`);
         res.redirect('/login');
       } else {
+        console.log(`userId: '${user.id}' exists`);
         const isMatch = models.Users.compare(password, user.password, user.salt);
         if (!isMatch) {
           console.log(`'${password}' does not match your password`);

@@ -5,6 +5,12 @@
  */
 const parseCookies = (req, res, next) => {
   const { cookie } = req.headers;
+
+  // create cookies property if undefined
+  if (!req.cookies) {
+    req.cookies = {};
+  }
+
   if (cookie) {
     const collection = cookie.split('; ');
     collection.forEach((str) => {

@@ -11,14 +11,17 @@ module.exports.createSession = (req, res, next) => {
 
     // verify that the cookie is valid (stored in db)
     models.Sessions.get({ hash: shortlyid })
-      .then((data) => {
-        // cookie is valid, store existing hash in session
-        if (data.hash === shortlyid) {
-          req.session.hash = data.hash;
+      .then((session) => {
+        if (session && session.hash === shortlyid) {
+          // cookie is valid, store existing hash in session
+          req.session.hash = session.hash;
         } else {
-          // cookie is NOT valid, remove cookie & logout
-          req.cookies = {};
-          res.redirect('/login');
+          // session does not exist or cookie is NOT valid
+          res.clearCookie('shortlyid');
+
+          // res.redirect('/login'); // does not work
+          // Error [ERR_HTTP_HEADERS_SENT]:
+          // Cannot set headers after they are sent to the client
         }
         return;
       })
@@ -26,19 +29,21 @@ module.exports.createSession = (req, res, next) => {
       .catch((error) => console.log(error));
   } else {
     // generate a session w/ unique hash -> store in DB
+    // console.log('QQQQQQQQQ', req);
+    // console.log('SSSSSSSSS', res);
     models.Sessions.create()
       .then((data) => data.insertId)
       .then((id) => models.Sessions.get({ id }))
-      .then((data) => {
-        req.session.hash = data.hash;
-        res.cookie('shortlyid', data.hash);
+      .then((session) => {
+        req.session.hash = session.hash;
+        res.cookie('shortlyid', session.hash);
       })
       .then(() => next())
       .catch((error) => console.log(error));
   }
-  // look up user data related to this session
-  // assign an object to req.session with some information
-    // what information about the user would you want to keep in this session object?
+  // look up username and userId related to this session
+  // update the session object
+  // update the session in the database record
 };
 
 /************************************************************/
