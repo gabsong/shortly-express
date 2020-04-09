@@ -45,5 +45,9 @@ module.exports.createSession = (req, res, next) => {
 /************************************************************/
 
 module.exports.verifySession = (req, res, next) => {
-
+  if (!models.Sessions.isLoggedIn(req.session)) {
+    res.redirect('/login');
+  } else {
+    next();
+  }
 };
