@@ -4,7 +4,6 @@ const utils = require('./lib/hashUtils');
 const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const cookieParser = require('./middleware/cookieParser');
-const createSession = require('./middleware/auth').createSession;
 const Auth = require('./middleware/auth');
 const models = require('./models');
 
@@ -15,9 +14,9 @@ app.set('view engine', 'ejs');
 app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../public')));
 app.use(cookieParser);
-app.use(createSession);
+app.use(Auth.createSession);
+app.use(express.static(path.join(__dirname, '../public')));
 
 
 app.get('/',
@@ -83,50 +82,53 @@ app.post('/links',
 
 app.get('/signup', (req, res) => res.render('signup'));
 
-// handle user signup
 app.post('/signup', (req, res, next) => {
   const { username, password } = req.body;
-
-  models.Users.query({ username })
+  models.Users.get({ username })
     .then((user) => {
-      if (!user) {
-        return models.Users.create({ username, password })
-          .then((data) => console.log('created userId:', data.insertId))
-          .then(() => res.redirect('/'));
-      } else {
-        (() => {
-          console.log(`user '${user.username}' already exists`);
-          return Promise.resolve();
-        })().then(() => res.redirect('/signup'));
+      if (user) {
+        // user already exists, cannot signup twice
+        throw user;
       }
+      // create a new user
+      return models.Users.create({ username, password });
     })
-    .catch((error) => console.log(error));
+    .then((result) => {
+      // upgrade current session by associating with user
+      const userId = result.insertId;
+      const { id } = req.session;
+      return models.Sessions.update({ id }, { userId });
+    })
+    .then(() => res.redirect('/'))
+    .catch(() => res.redirect('/signup'));
 });
 
 app.get('/login', (req, res) => res.render('login'));
 
-// handle user login
 app.post('/login', (req, res, next) => {
   const { username, password } = req.body;
-  models.Users.query({ username })
+  let userId;
+  models.Users.get({ username })
     .then((user) => {
       if (!user) {
-        console.log(`user '${username}' does not exist`);
-        res.redirect('/login');
-      } else {
-        console.log(`userId: '${user.id}' exists`);
-        const isMatch = models.Users.compare(password, user.password, user.salt);
-        if (!isMatch) {
-          console.log(`'${password}' does not match your password`);
-          res.redirect('/login');
-        } else {
-          // auth successful, log in user (create session?)
-          console.log('BOOM! Authentication succesful!');
-          res.redirect('/');
-        }
+        // user does not exist, cannot login
+        throw user;
       }
+      // compare password hashes
+      userId = user.id; // save for later
+      return models.Users.compare(password, user.password, user.salt);
     })
-    .catch((error) => console.log(error));
+    .then((isMatch) => {
+      if (!isMatch) {
+        // hashes do not match, cannot login
+        throw isMatch;
+      }
+      // upgrade current session by associating with user
+      const { id } = req.session;
+      return models.Sessions.update({ id }, { userId });
+    })
+    .then(() => res.redirect('/'))
+    .catch(() => res.redirect('/login'));
 });
 
 /************************************************************/

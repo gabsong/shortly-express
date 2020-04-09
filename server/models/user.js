@@ -52,7 +52,7 @@ class Users extends Model {
    * @returns {Promise<Object>} A promise that is fulfilled with the result of
    * the DB query or rejected with the error that occured.
    */
-  query({ username }) {
+  get({ username }) {
     let existingUser = { username };
     return super.get.call(this, existingUser);
   }
