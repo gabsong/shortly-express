@@ -1,2 +1,4 @@
 # shortly-express
-This is a project I completed as a student at [hackreactor](http://hackreactor.com). This project was worked on with a pair.
+
+Missing functionality
+- Save different states for each user

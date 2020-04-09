@@ -21,6 +21,7 @@ module.exports.createSession = (req, res, next) => {
 
       // Case 4: Has session (i.e. returning user login)
       // PLACEHOLDER: verify session is still valid
+      // compare cookie.hash (client) with session.hash (server-db)
       return session;
     })
     .catch(() => {
