@@ -127,6 +127,18 @@ app.post('/login', (req, res, next) => {
     .catch(() => res.redirect('/login'));
 });
 
+app.get('/logout', (req, res, next) => {
+  // delete the session that contains matching hash from cookie
+  return models.Sessions.delete({ hash: req.cookies.shortlyid })
+    .then(() => {
+      res.clearCookie('shortlyid');
+      res.redirect('/login');
+    })
+    .error(error => {
+      res.status(500).send(error);
+    });
+});
+
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
