@@ -435,7 +435,7 @@ describe('', function() {
         });
       });
 
-      xit('assigns a username and userId property to the session object if the session is assigned to a user', function(done) {
+      it('assigns a username and userId property to the session object if the session is assigned to a user', function(done) {
         var requestWithoutCookie = httpMocks.createRequest();
         var response = httpMocks.createResponse();
         var username = 'BillZito';

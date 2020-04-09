@@ -44,18 +44,6 @@ class Users extends Model {
 
     return super.create.call(this, newUser);
   }
-
-  /**
-   * Check if a user record with the given username exists.
-   * @param {Object} user - The user object.
-   * @param {string} user.username - The user's username.
-   * @returns {Promise<Object>} A promise that is fulfilled with the result of
-   * the DB query or rejected with the error that occured.
-   */
-  get({ username }) {
-    let existingUser = { username };
-    return super.get.call(this, existingUser);
-  }
 }
 
 module.exports = new Users();
