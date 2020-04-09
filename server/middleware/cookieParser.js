@@ -4,20 +4,17 @@
  * this object to a cookies property on the request.
  */
 const parseCookies = (req, res, next) => {
-  const { cookie } = req.headers;
+  const rawCookies = req.get('Cookie') || '';
 
-  // create cookies property if undefined
-  if (!req.cookies) {
-    req.cookies = {};
-  }
+  parsedCookies = rawCookies.split('; ').reduce((cookies, rawCookie) => {
+    if (rawCookie.length) {
+      const [ key, token ] = rawCookie.split('=');
+      cookies[key] = token;
+    }
+    return cookies;
+  }, {});
 
-  if (cookie) {
-    const collection = cookie.split('; ');
-    collection.forEach((str) => {
-      const [ key, value ] = str.split('=');
-      req.cookies[key] = value;
-    });
-  }
+  req.cookies = parsedCookies;
 
   next();
 };
